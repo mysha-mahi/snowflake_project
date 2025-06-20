@@ -15,10 +15,9 @@ jobs:
 
       - name: Install SnowSQL CLI
         run: |
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.21-linux_x86_64.tar.gz
-          tar -xzf snowsql-1.2.21-linux_x86_64.tar.gz
-          ./snowsql-1.2.21-linux_x86_64/install.sh -y
-          echo "$HOME/.snowsql" >> $GITHUB_PATH
+          pip install --upgrade pip
+          pip install snowflake-cli-labs
+          
 
       - name: Run SnowSQL script
         env:
@@ -26,6 +25,6 @@ jobs:
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
         run: |
-          ./snowsql -a $SNOWFLAKE_ACCOUNT -u $SNOWFLAKE_USER -p $SNOWFLAKE_PASSWORD \
+          ./snowflake -a $SNOWFLAKE_ACCOUNT -u $SNOWFLAKE_USER -p $SNOWFLAKE_PASSWORD \
             -d MYDB -s FF_SCHEMA -r ACCOUNTADMIN \
             -f schemas/ff_schema.sql
