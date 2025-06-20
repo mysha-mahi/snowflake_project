@@ -1,13 +1,45 @@
+name: Deploy to Snowflake
+
+on:
+  push:
+    branches:
+      - master
+
 jobs:
   deploy:
-    container:
-      image: snowflake/snowsql:latest
-      
+    runs-on: ubuntu-22.04
+
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v3
-        
-      - name: Configure and Run
+
+      - name: Install SnowSQL (Verified Method)
+        run: |
+          # Install minimal dependencies
+          sudo apt-get update
+          sudo apt-get install -y libc6 libncurses6 libxml2 libssl3 ca-certificates
+          
+          # Download specific SnowSQL version (1.2.28 as 1.2.27 seems problematic)
+          curl -LO https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.28-linux_x86_64.bash
+          
+          # Verify download
+          if [ ! -f snowsql-1.2.28-linux_x86_64.bash ]; then
+            echo " Download failed"
+            exit 1
+          fi
+          
+          # Install with explicit directory
+          chmod +x snowsql-1.2.28-linux_x86_64.bash
+          ./snowsql-1.2.28-linux_x86_64.bash -b -d $HOME/snowsql
+          
+          # Add to PATH
+          echo "$HOME/snowsql" >> $GITHUB_PATH
+          echo "::add-path::$HOME/snowsql"
+          
+          # Verify
+          $HOME/snowsql/snowsql --version
+
+      - name: Configure SnowSQL
         run: |
           mkdir -p ~/.snowsql
           cat <<EOF > ~/.snowsql/config
@@ -20,5 +52,7 @@ jobs:
           schemaname = ${{ secrets.SNOWFLAKE_SCHEMA }}
           rolename = ${{ secrets.SNOWFLAKE_ROLE }}
           EOF
-          
+
+      - name: Run SQL Script
+        run: |
           snowsql -c my_conn -f schemas/ff_schema.sql
