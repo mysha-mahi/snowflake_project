@@ -15,9 +15,10 @@ jobs:
 
       - name: Install SnowSQL CLI
         run: |
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-linux_x86_64.bash
-          bash snowsql-linux_x86_64.bash -y
-          echo "$HOME/.snowsql" >> $GITHUB_PATH
+          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.27-linux_x86_64.bash
+          chmod +x snowsql-1.2.27-linux_x86_64.bash
+          ./snowsql-1.2.27-linux_x86_64.bash
+          echo "$HOME/bin" >> $GITHUB_PATH
 
       - name: Configure SnowSQL connection
         run: |
