@@ -3,7 +3,7 @@ name: Deploy to Snowflake
 on:
   push:
     branches:
-      - master  # or "main", depending on your default branch
+      - master
 
 jobs:
   deploy:
@@ -11,26 +11,23 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Install SnowSQL CLI
-        run: |
-          pip install --upgrade pip
-          pip install snowflake-cli-labs
-          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-      - name: Run SnowSQL script
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      - name: Install Snowflake CLI (new)
+        run: pip install snowflake-cli-labs
+
+      - name: Run Snowflake SQL script
         run: |
-          python -m snowflake.cli \
+          snowflake sql -f schemas/ff_schema.sql \
             -a ${{ secrets.SNOWFLAKE_ACCOUNT }} \
             -u ${{ secrets.SNOWFLAKE_USER }} \
             -p ${{ secrets.SNOWFLAKE_PASSWORD }} \
-            -r ${{ secrets.SNOWFLAKE_ROLE }} \
-            -w ${{ secrets.SNOWFLAKE_WAREHOUSE }} \
-            -d ${{ secrets.SNOWFLAKE_DATABASE }} \
-            -s ${{ secrets.SNOWFLAKE_SCHEMA }} \
-            -f path/to/script.sql
+            --role ${{ secrets.SNOWFLAKE_ROLE }} \
+            --warehouse ${{ secrets.SNOWFLAKE_WAREHOUSE }} \
+            --database ${{ secrets.SNOWFLAKE_DATABASE }} \
+            --schema ${{ secrets.SNOWFLAKE_SCHEMA }}
