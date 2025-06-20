@@ -15,10 +15,16 @@ jobs:
 
       - name: Install SnowSQL CLI
         run: |
+          # Download the latest SnowSQL installer
           curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.27-linux_x86_64.bash
+          
+          # Make executable and install silently
           chmod +x snowsql-1.2.27-linux_x86_64.bash
-          ./snowsql-1.2.27-linux_x86_64.bash
+          ./snowsql-1.2.27-linux_x86_64.bash -b -d ~/bin
+          
+          # Add SnowSQL to PATH
           echo "$HOME/bin" >> $GITHUB_PATH
+          echo "SnowSQL installed successfully."
 
       - name: Configure SnowSQL connection
         run: |
