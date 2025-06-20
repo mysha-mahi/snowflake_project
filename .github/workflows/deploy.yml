@@ -7,33 +7,59 @@ on:
 
 jobs:
   deploy:
-    # For best compatibility, use Ubuntu 22.04 (optional)
-    runs-on: ubuntu-22.04  # or "ubuntu-latest" (24.04)
-    
+    runs-on: ubuntu-22.04  # Using 22.04 for best compatibility
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install SnowSQL with Dependencies
+      - name: Install SnowSQL (Robust Method)
         run: |
-          # Install required libraries (updated for Ubuntu 24.04)
+          # Install dependencies
           sudo apt-get update
-          sudo apt-get install -y libc6 libncurses6 libxml2
-          
-          # For older SnowSQL versions, may need libssl1.1:
-          # wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
-          # sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb || true
-          
-          # Download and install SnowSQL
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.27-linux_x86_64.bash
-          chmod +x snowsql-1.2.27-linux_x86_64.bash
-          ./snowsql-1.2.27-linux_x86_64.bash -b -d $HOME/bin
-          
-          # Verify installation
-          $HOME/bin/snowsql --version
-          echo "$HOME/bin" >> $GITHUB_PATH
+          sudo apt-get install -y \
+            libc6 \
+            libncurses6 \
+            libxml2 \
+            libssl3 \
+            ca-certificates \
+            wget
 
-      - name: Configure SnowSQL Connection
+          # Download SnowSQL with version verification
+          SNOWSQL_VERSION="1.2.27"
+          SNOWSQL_URL="https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-${SNOWSQL_VERSION}-linux_x86_64.bash"
+          echo "Downloading SnowSQL from: $SNOWSQL_URL"
+          wget -nv "$SNOWSQL_URL" -O snowsql-installer.bash
+
+          # Verify download
+          if [ ! -f snowsql-installer.bash ]; then
+            echo "❌ SnowSQL download failed"
+            exit 1
+          fi
+
+          # Install with debug output
+          chmod +x snowsql-installer.bash
+          echo "Starting installation..."
+          bash -x ./snowsql-installer.bash -b -d $HOME/bin 2>&1 | tee install.log
+
+          # Check installation result
+          if [ $? -ne 0 ]; then
+            echo "❌ Installation failed. Log output:"
+            cat install.log
+            exit 1
+          fi
+
+          # Verify installation
+          if [ -f "$HOME/bin/snowsql" ]; then
+            echo " SnowSQL installed successfully"
+            $HOME/bin/snowsql --version
+            echo "$HOME/bin" >> $GITHUB_PATH
+          else
+            echo " SnowSQL binary not found"
+            exit 1
+          fi
+
+      - name: Configure SnowSQL
         run: |
           mkdir -p ~/.snowsql
           cat <<EOF > ~/.snowsql/config
