@@ -1,65 +1,13 @@
-name: Deploy to Snowflake
-
-on:
-  push:
-    branches:
-      - master
-
 jobs:
   deploy:
-    runs-on: ubuntu-22.04  # Using 22.04 for best compatibility
-
+    container:
+      image: snowflake/snowsql:latest
+      
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Install SnowSQL (Robust Method)
-        run: |
-          # Install dependencies
-          sudo apt-get update
-          sudo apt-get install -y \
-            libc6 \
-            libncurses6 \
-            libxml2 \
-            libssl3 \
-            ca-certificates \
-            wget
-
-          # Download SnowSQL with version verification
-          SNOWSQL_VERSION="1.2.27"
-          SNOWSQL_URL="https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-${SNOWSQL_VERSION}-linux_x86_64.bash"
-          echo "Downloading SnowSQL from: $SNOWSQL_URL"
-          wget -nv "$SNOWSQL_URL" -O snowsql-installer.bash
-
-          # Verify download
-          if [ ! -f snowsql-installer.bash ]; then
-            echo "❌ SnowSQL download failed"
-            exit 1
-          fi
-
-          # Install with debug output
-          chmod +x snowsql-installer.bash
-          echo "Starting installation..."
-          bash -x ./snowsql-installer.bash -b -d $HOME/bin 2>&1 | tee install.log
-
-          # Check installation result
-          if [ $? -ne 0 ]; then
-            echo "❌ Installation failed. Log output:"
-            cat install.log
-            exit 1
-          fi
-
-          # Verify installation
-          if [ -f "$HOME/bin/snowsql" ]; then
-            echo " SnowSQL installed successfully"
-            $HOME/bin/snowsql --version
-            echo "$HOME/bin" >> $GITHUB_PATH
-          else
-            echo " SnowSQL binary not found"
-            exit 1
-          fi
-
-      - name: Configure SnowSQL
+        
+      - name: Configure and Run
         run: |
           mkdir -p ~/.snowsql
           cat <<EOF > ~/.snowsql/config
@@ -72,7 +20,5 @@ jobs:
           schemaname = ${{ secrets.SNOWFLAKE_SCHEMA }}
           rolename = ${{ secrets.SNOWFLAKE_ROLE }}
           EOF
-
-      - name: Run SQL Script
-        run: |
+          
           snowsql -c my_conn -f schemas/ff_schema.sql
