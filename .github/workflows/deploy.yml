@@ -13,11 +13,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install SnowSQL (Official Action)
-        uses: snowflakedb/snowflake-actions/setup-snowsql@v1
-        with:
-          # Optional: Specify SnowSQL version (default: latest)
-          version: "1.2.27"
+      - name: Install SnowSQL
+        uses: snowflakedb/snowflake-actions/setup-snowsql@main
 
       - name: Configure SnowSQL connection
         run: |
