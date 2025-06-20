@@ -1,0 +1,31 @@
+name: Snowflake SQL Deployment
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install SnowSQL CLI
+        run: |
+          sudo apt update
+          sudo apt install unzip
+          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.4/linux_x86_64/snowsql-1.4.17-linux_x86_64.bash
+          bash snowsql-1.4.17-linux_x86_64.bash
+
+      - name: Run Snowflake SQL script
+        run: |
+          ~/.snowsql/snowsql -a ${{ secrets.SNOWFLAKE_ACCOUNT }} \
+                             -u ${{ secrets.SNOWFLAKE_USER }} \
+                             -p ${{ secrets.SNOWFLAKE_PASSWORD }} \
+                             -r ACCOUNTADMIN \
+                             -w COMPUTE_WH \
+                             -d MYDB \
+                             -s PUBLIC \
+                             -f schemas/ff_schema.sql
