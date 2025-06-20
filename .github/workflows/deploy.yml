@@ -7,16 +7,22 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-
+    # For best compatibility, use Ubuntu 22.04 (optional)
+    runs-on: ubuntu-22.04  # or "ubuntu-latest" (24.04)
+    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install SnowSQL (Fallback Method)
+      - name: Install SnowSQL with Dependencies
         run: |
-          # Install dependencies (required for manual install)
-          sudo apt-get update && sudo apt-get install -y libc6 libncurses5 libxml2
+          # Install required libraries (updated for Ubuntu 24.04)
+          sudo apt-get update
+          sudo apt-get install -y libc6 libncurses6 libxml2
+          
+          # For older SnowSQL versions, may need libssl1.1:
+          # wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+          # sudo dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb || true
           
           # Download and install SnowSQL
           curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.27-linux_x86_64.bash
@@ -27,7 +33,7 @@ jobs:
           $HOME/bin/snowsql --version
           echo "$HOME/bin" >> $GITHUB_PATH
 
-      - name: Configure SnowSQL connection
+      - name: Configure SnowSQL Connection
         run: |
           mkdir -p ~/.snowsql
           cat <<EOF > ~/.snowsql/config
