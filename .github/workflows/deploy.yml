@@ -13,8 +13,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install SnowSQL
-        uses: snowflakedb/snowflake-actions/setup-snowsql@main
+      - name: Install SnowSQL (Fallback Method)
+        run: |
+          # Install dependencies (required for manual install)
+          sudo apt-get update && sudo apt-get install -y libc6 libncurses5 libxml2
+          
+          # Download and install SnowSQL
+          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.27-linux_x86_64.bash
+          chmod +x snowsql-1.2.27-linux_x86_64.bash
+          ./snowsql-1.2.27-linux_x86_64.bash -b -d $HOME/bin
+          
+          # Verify installation
+          $HOME/bin/snowsql --version
+          echo "$HOME/bin" >> $GITHUB_PATH
 
       - name: Configure SnowSQL connection
         run: |
