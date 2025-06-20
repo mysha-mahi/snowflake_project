@@ -1,0 +1,16 @@
+# macOS and Windows junk
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.log
+*.tmp
+*.swp
+
+# Secrets (never commit these!)
+.env
+*.key
+*.pem
+
+# Snowflake config (optional)
+.snowsql/config
