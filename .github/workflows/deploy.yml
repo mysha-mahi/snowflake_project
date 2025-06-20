@@ -35,4 +35,4 @@ jobs:
 
       - name: Execute SQL script
         run: |
-          snowflake sql -c my_conn -f schemas/ff_schema.sql
+          python -m snowflake.cli sql -c my_conn -f schemas/ff_schema.sql
