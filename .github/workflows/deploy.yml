@@ -1,31 +1,29 @@
-name: Snowflake SQL Deployment
+name: Deploy to Snowflake
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master  # or "main", depending on your default branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Install SnowSQL CLI
         run: |
-          sudo apt update
-          sudo apt install unzip
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.4/linux_x86_64/snowsql-1.4.17-linux_x86_64.bash
-          bash snowsql-1.4.17-linux_x86_64.bash
+          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.21-linux_x86_64.bash
+          bash snowsql-1.2.21-linux_x86_64.bash
 
-      - name: Run Snowflake SQL script
+      - name: Run SnowSQL script
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
         run: |
-          ~/.snowsql/snowsql -a ${{ secrets.SNOWFLAKE_ACCOUNT }} \
-                             -u ${{ secrets.SNOWFLAKE_USER }} \
-                             -p ${{ secrets.SNOWFLAKE_PASSWORD }} \
-                             -r ACCOUNTADMIN \
-                             -w COMPUTE_WH \
-                             -d MYDB \
-                             -s PUBLIC \
-                             -f schemas/ff_schema.sql
+          ./snowsql -a $SNOWFLAKE_ACCOUNT -u $SNOWFLAKE_USER -p $SNOWFLAKE_PASSWORD \
+            -d MYDB -s FF_SCHEMA -r ACCOUNTADMIN \
+            -f schemas/ff_schema.sql
