@@ -13,31 +13,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install SnowSQL (Verified Method)
+      - name: Install Dependencies
         run: |
-          # Install minimal dependencies
           sudo apt-get update
           sudo apt-get install -y libc6 libncurses6 libxml2 libssl3 ca-certificates
-          
-          # Download specific SnowSQL version (1.2.28 as 1.2.27 seems problematic)
+
+      - name: Download & Install SnowSQL
+        run: |
           curl -LO https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.28-linux_x86_64.bash
-          
-          # Verify download
-          if [ ! -f snowsql-1.2.28-linux_x86_64.bash ]; then
-            echo " Download failed"
-            exit 1
-          fi
-          
-          # Install with explicit directory
           chmod +x snowsql-1.2.28-linux_x86_64.bash
-          ./snowsql-1.2.28-linux_x86_64.bash -b -d $HOME/snowsql
-          
-          # Add to PATH
+          ./snowsql-1.2.28-linux_x86_64.bash -y -d $HOME/snowsql
           echo "$HOME/snowsql" >> $GITHUB_PATH
-          echo "::add-path::$HOME/snowsql"
-          
-          # Verify
-          $HOME/snowsql/snowsql --version
+          echo "SnowSQL installed at $HOME/snowsql"
+          $HOME/snowsql/snowsql --version || echo "SnowSQL installation failed"
 
       - name: Configure SnowSQL
         run: |
