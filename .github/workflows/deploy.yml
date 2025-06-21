@@ -1,4 +1,4 @@
-name: Deploy to Snowflake
+name: Deploy to Snowflake via Python
 
 on:
   push:
@@ -7,44 +7,29 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
       - name: Install Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libc6 libncurses6 libxml2 libssl3 ca-certificates
+          python -m pip install --upgrade pip
+          pip install snowflake-connector-python
 
-      - name: Download & Install SnowSQL
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl unzip
-          curl -s https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/install | bash -s -- -y
-          echo "$HOME/.snowsql" >> $GITHUB_PATH
-          ~/.snowsql/snowsql --version
-
-      - name: Configure SnowSQL
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl unzip
-
-          # Download verified working install script (v1.2.24)
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-linux_x86_64.bash
-
-          # Make it executable and install
-          chmod +x snowsql-linux_x86_64.bash
-          ./snowsql-linux_x86_64.bash -y -d $HOME/snowsql
-
-          # Add snowsql to PATH for GitHub runner
-          echo "$HOME/snowsql" >> $GITHUB_PATH
-          echo "::add-path::$HOME/snowsql"
-
-          # Verify installation
-          $HOME/snowsql/snowsql --version
-
-      - name: Run SQL Script
-        run: |
-          $HOME/snowsql/snowsql -c my_conn -f schemas/ff_schema.sql
+      - name: Run Deployment Script
+        env:
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+        run: python utils/deploy.py
