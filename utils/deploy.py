@@ -1,6 +1,6 @@
+import os
 import snowflake.connector
 
-# Replace with environment variables from GitHub Secrets
 conn = snowflake.connector.connect(
     user=os.environ["SNOWFLAKE_USER"],
     password=os.environ["SNOWFLAKE_PASSWORD"],
@@ -13,7 +13,6 @@ conn = snowflake.connector.connect(
 
 cursor = conn.cursor()
 
-# List of scripts to run
 scripts = [
     "schemas/ff_schema.sql",
     "schemas/stg_schema.sql",
