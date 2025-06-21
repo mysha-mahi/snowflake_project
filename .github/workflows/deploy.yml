@@ -22,7 +22,7 @@ jobs:
         run: |
           curl -LO https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.28-linux_x86_64.bash
           chmod +x snowsql-1.2.28-linux_x86_64.bash
-          ./snowsql-1.2.28-linux_x86_64.bash -y -d $HOME/snowsql
+          ./snowsql-1.2.28-linux_x86_64.bash -y -d $HOME/snowsql || cat /tmp/snowsql_install.log
           echo "$HOME/snowsql" >> $GITHUB_PATH
           echo "SnowSQL installed at $HOME/snowsql"
           $HOME/snowsql/snowsql --version || echo "SnowSQL installation failed"
