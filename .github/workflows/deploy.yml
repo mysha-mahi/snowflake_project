@@ -55,4 +55,4 @@ jobs:
 
       - name: Run SQL Script
         run: |
-          snowsql -c my_conn -f schemas/ff_schema.sql
+          $HOME/snowsql/snowsql -c my_conn -f schemas/ff_schema.sql
